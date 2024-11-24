@@ -2,12 +2,14 @@
 using DiscordBot1.config;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
 
 namespace PowBot
 {
     internal class Program
     {
-        private static DiscordClient Client { get; set; }
+        public static DiscordClient Client { get; set; }
         private static CommandsNextExtension Commands { get; set; }
         static async Task Main(string[] args)
         {
@@ -24,6 +26,11 @@ namespace PowBot
 
             Client = new DiscordClient(discordConfig);
 
+            Client.UseInteractivity(new InteractivityConfiguration()
+            {
+                Timeout = TimeSpan.FromMinutes(2)
+            });
+
             Client.Ready += Client_Ready;
 
             var commandsConfig = new CommandsNextConfiguration()
@@ -38,6 +45,7 @@ namespace PowBot
             Commands = Client.UseCommandsNext(commandsConfig);
 
             Commands.RegisterCommands<TestCommands>();
+            Commands.RegisterCommands<InteractiveCommands>();
 
             await Client.ConnectAsync();
             await Task.Delay(-1);
