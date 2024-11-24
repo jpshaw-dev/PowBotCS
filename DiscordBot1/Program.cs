@@ -1,4 +1,5 @@
-﻿using DiscordBot1.config;
+﻿using DiscordBot1.commands;
+using DiscordBot1.config;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 
@@ -24,6 +25,19 @@ namespace PowBot
             Client = new DiscordClient(discordConfig);
 
             Client.Ready += Client_Ready;
+
+            var commandsConfig = new CommandsNextConfiguration()
+            {
+                StringPrefixes = new string[] { jsonReader.prefix },
+                EnableMentionPrefix = true,
+                EnableDms = true,
+                EnableDefaultHelp = false,
+
+            };
+
+            Commands = Client.UseCommandsNext(commandsConfig);
+
+            Commands.RegisterCommands<TestCommands>();
 
             await Client.ConnectAsync();
             await Task.Delay(-1);
