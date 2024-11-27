@@ -3,14 +3,14 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 
-namespace DiscordBot1.commands
+namespace DiscordBot1.commands.prefix
 {
     public class TestCommands : BaseCommandModule
     {
         [Command("test")]
         public async Task MyFirstCommand(CommandContext ctx)
         {
-            await ctx.Channel.SendMessageAsync($"Hello dummy, {ctx.User.Username }");
+            await ctx.Channel.SendMessageAsync($"Hello dummy, {ctx.User.Username}");
         }
 
         [Command("add")]
@@ -28,6 +28,7 @@ namespace DiscordBot1.commands
         }
 
         [Command("nou")]
+        [Cooldown(2, 30, CooldownBucketType.User)]
         public async Task NoU(CommandContext ctx)
         {
             await ctx.Channel.SendMessageAsync("no u XD");
@@ -42,10 +43,11 @@ namespace DiscordBot1.commands
                 Description = $"{ctx.User.Username} is stinkyyy",
                 Color = DiscordColor.Purple
             };
-                
+
 
             await ctx.Channel.SendMessageAsync(embed: message);
         }
+
 
         [Command("cardgame")]
         public async Task CardGame(CommandContext ctx)
