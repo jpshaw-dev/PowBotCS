@@ -6,7 +6,7 @@ using DSharpPlus.SlashCommands;
 namespace DiscordBot1.commands.slash
 {
     [SlashCommandGroup("arcane", "Arcane based commands")]
-    public class arcanePics : ApplicationCommandModule
+    public class ArcanePics : ApplicationCommandModule
     {
         [SlashCommand("random", "Random Arcane Picture (S2 only)")]
         public async Task RandomArcane(InteractionContext ctx)

@@ -49,5 +49,16 @@ namespace DiscordBot1.commands.slash
 
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embed));
         }
+
+        [SlashCommand("modal", "Show a modal")]
+        public async Task Modal(InteractionContext ctx)
+        {
+            var modal = new DiscordInteractionResponseBuilder()
+                .WithTitle("Test modal")
+                .WithCustomId("modal1")
+                .AddComponents(new TextInputComponent("Random", "RandomTextBox", "Type something here"));
+
+            await ctx.CreateResponseAsync(DSharpPlus.InteractionResponseType.Modal, modal);
+        }
     }
 }

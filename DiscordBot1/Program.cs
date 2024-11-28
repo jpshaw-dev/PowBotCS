@@ -42,7 +42,8 @@ namespace PowBot
 
             Client.Ready += Client_Ready;
             Client.VoiceStateUpdated += VoiceChannelHandler;
-            Client.ComponentInteractionCreated += ComponentInteraction;
+            Client.ComponentInteractionCreated += InteractionEventHandler;
+            Client.ModalSubmitted += ModalEventHandler;
 
             var commandsConfig = new CommandsNextConfiguration()
             {
@@ -60,20 +61,36 @@ namespace PowBot
 
             slashCommandsConfig.RegisterCommands<BasicSL>(788138081474576436);
             slashCommandsConfig.RegisterCommands<CalculatorSL>(788138081474576436);
-            slashCommandsConfig.RegisterCommands<arcanePics>(788138081474576436);
+            slashCommandsConfig.RegisterCommands<ArcanePics>(788138081474576436);
             Commands.RegisterCommands<TestCommands>();
             Commands.RegisterCommands<InteractiveCommands>();
             Commands.RegisterCommands<TestButtons>();
             Commands.RegisterCommands<Buttons>();
             Commands.RegisterCommands<ComponentsCommands>();
 
-            
+            Console.WriteLine("PowBot Started");
 
             await Client.ConnectAsync();
             await Task.Delay(-1);
         }
 
-        private static async Task ComponentInteraction(DiscordClient sender, ComponentInteractionCreateEventArgs args)
+        private static async Task ModalEventHandler(DiscordClient sender, ModalSubmitEventArgs e)
+        {
+            if (e.Interaction.Type == InteractionType.ModalSubmit)
+            {
+                var member = (DiscordMember)e.Interaction.User;
+                switch (e.Interaction.Data.CustomId)
+                {
+                    case "modal1":
+                        var values = e.Values;
+                        await e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"{member.Nickname} submitted a modal with the input: {values.Values.First()}"));
+                        break;
+                }
+                
+            }
+        }
+
+        private static async Task InteractionEventHandler(DiscordClient sender, ComponentInteractionCreateEventArgs args)
         {
             // Dropdown Events
             switch (args.Id)
