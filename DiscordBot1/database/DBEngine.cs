@@ -134,7 +134,7 @@ namespace DiscordBot1.database
         {
             var XPAmounts = await DetermineXPAsync(username, serverID);
 
-            // Ensure floating-point values are correctly formatted (if necessary, though parameterized queries handle this)
+            
             double xpAmount = XPAmounts.Item1;
             int xpLimit = XPAmounts.Item2;
 
