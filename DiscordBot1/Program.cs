@@ -4,6 +4,8 @@ using DiscordBot1.commands.components;
 using DiscordBot1.commands.prefix;
 using DiscordBot1.commands.slash;
 using DiscordBot1.config;
+using DiscordBot1.database;
+using DotNetEnv;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -13,65 +15,125 @@ using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PowBot
 {
-    internal class Program
+    public sealed class Program
     {
-        public static DiscordClient Client { get; set; }
-        private static CommandsNextExtension Commands { get; set; }
+        public static DiscordClient Client { get; private set; }
+        public static CommandsNextExtension Commands { get; private set; }
+        private static JSONReader jsonReader;
         static async Task Main(string[] args)
         {
-            var jsonReader = new JSONReader();
-            await jsonReader.ReadJSON();
+            
+            
+            
+            //1. Get the details of your config.json file by deserialising it
+            var configJsonFile = new JSONReader();
+            await configJsonFile.ReadJSON();
 
+            Environment.SetEnvironmentVariable("DB_CONNECTION_STRING", $"{configJsonFile.connectionStringDB}");
+            Env.Load();
+            string connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+            Console.WriteLine(connectionString);
+
+            //2. Setting up the Bot Configuration
             var discordConfig = new DiscordConfiguration()
             {
                 Intents = DiscordIntents.All,
-                Token = jsonReader.token,
+                Token = configJsonFile.token,
                 TokenType = TokenType.Bot,
-                AutoReconnect = true,
+                AutoReconnect = true
             };
 
+            
             Client = new DiscordClient(discordConfig);
 
+            
             Client.UseInteractivity(new InteractivityConfiguration()
             {
-                Timeout = TimeSpan.FromMinutes(2)
+                Timeout = TimeSpan.FromMinutes(1)
             });
 
+            
             Client.Ready += Client_Ready;
             Client.VoiceStateUpdated += VoiceChannelHandler;
             Client.ComponentInteractionCreated += InteractionEventHandler;
             Client.ModalSubmitted += ModalEventHandler;
+            Client.MessageCreated += MessageCreatedHandler;
 
+            //Commands Configuration
             var commandsConfig = new CommandsNextConfiguration()
             {
-                StringPrefixes = new string[] { jsonReader.prefix },
+                StringPrefixes = new string[] { configJsonFile.prefix },
                 EnableMentionPrefix = true,
                 EnableDms = true,
                 EnableDefaultHelp = false,
-
             };
 
             Commands = Client.UseCommandsNext(commandsConfig);
+
+            // Command Registration
+
             var slashCommandsConfig = Client.UseSlashCommands();
-
-            Commands.CommandErrored += CommandEventHandler;
-
-            slashCommandsConfig.RegisterCommands<BasicSL>(788138081474576436);
+            slashCommandsConfig.RegisterCommands<BasicSL>(788138081474576436);  // Register BasicSL
             slashCommandsConfig.RegisterCommands<CalculatorSL>(788138081474576436);
             slashCommandsConfig.RegisterCommands<ArcanePics>(788138081474576436);
-            Commands.RegisterCommands<TestCommands>();
-            Commands.RegisterCommands<InteractiveCommands>();
-            Commands.RegisterCommands<TestButtons>();
-            Commands.RegisterCommands<Buttons>();
-            Commands.RegisterCommands<ComponentsCommands>();
 
-            Console.WriteLine("PowBot Started");
-
+            // Bot Online
             await Client.ConnectAsync();
             await Task.Delay(-1);
+        }
+
+
+        private static async Task Client_Ready(DiscordClient sender, DSharpPlus.EventArgs.ReadyEventArgs args)
+        {
+            Console.WriteLine("Bot is connected and ready.");
+        }
+
+        private static async Task MessageCreatedHandler(DiscordClient sender, MessageCreateEventArgs e)
+        {
+            if (!e.Author.IsBot)
+            {
+                try
+                {
+                    {
+                        var DBEngine = new DBEngine();
+
+                        //leveling up
+
+                        var userToCheck = await DBEngine.GetUserAsync(e.Author.Username, e.Guild.Id);
+
+                        if (userToCheck.Item2.XP >= userToCheck.Item2.XPLimit)
+                        {
+                            await DBEngine.LevelUpAsync(e.Author.Username, e.Guild.Id);
+                        }
+                        else
+                        {
+                            var addedXP = await DBEngine.AddXPAsync(e.Author.Username, e.Guild.Id);
+                        }
+
+                        if (DBEngine.isLevelledUp)
+                        {
+                            var user = await DBEngine.GetUserAsync(e.Author.Username, e.Guild.Id);
+                            var userNick = (DiscordMember)e.Author;
+                            var leveledUpEmbed = new DiscordEmbedBuilder
+                            {
+                                Color = DiscordColor.Green,
+                                Title = $"{userNick.Nickname} has Levelled Up!",
+                                Description = $"Level: {user.Item2.Level}"
+                            };
+
+                            await e.Channel.SendMessageAsync(embed: leveledUpEmbed);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error in MessageCreatedHandler: " + ex.Message);
+                }
+            }
         }
 
         private static async Task ModalEventHandler(DiscordClient sender, ModalSubmitEventArgs e)
@@ -86,18 +148,17 @@ namespace PowBot
                         await e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"{member.Nickname} submitted a modal with the input: {values.Values.First()}"));
                         break;
                 }
-                
             }
         }
 
         private static async Task InteractionEventHandler(DiscordClient sender, ComponentInteractionCreateEventArgs args)
         {
-            // Dropdown Events
+            // Handle Dropdown Events
             switch (args.Id)
             {
                 case "dropdown1":
                     var dropOptions = args.Values;
-                    foreach(var option in dropOptions)
+                    foreach (var option in dropOptions)
                     {
                         var member = (DiscordMember)args.User;
                         switch (option)
@@ -117,69 +178,21 @@ namespace PowBot
                     }
                     break;
 
-                case "channelList":
-                    var chanOptions = args.Values;
-                    foreach(var channel in chanOptions)
-                    {
-                        var member = (DiscordMember)args.User;
-                        var selecChan = await Client.GetChannelAsync(ulong.Parse(channel));
-                        await args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"{member.Nickname} selected the channel {selecChan.Name}"));
-                    }
-                    break;
-
-                case "mentionList1":
-                    var mentionOptions = args.Values;
-                    foreach(var user in mentionOptions)
-                    {
-                        var selectedUser = await Client.GetUserAsync(ulong.Parse(user));
-                        
-
-                        await args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"{selectedUser.Mention} was mentioned"));
-                    }
-                    break;
+                    // Handle other events such as channel selection, user mentions, etc.
             }
 
-
-
-
-            // Button Events
+            // Handle Button Events
             switch (args.Interaction.Data.CustomId)
             {
                 case "button1":
-                    await args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"{args.User.Username} has pressed button 1. What an idiot"));
+                    await args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"{args.User.Username} has pressed button 1."));
                     break;
 
                 case "button2":
-                    await args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"{args.User.Username} has pressed button 2. What a sexy sex sexer sex :3"));
+                    await args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"{args.User.Username} has pressed button 2."));
                     break;
 
-                case "testsButton":
-                    await args.Interaction.DeferAsync();
-                    var testsCommandEmbed = new DiscordEmbedBuilder
-                    {
-                        Color = DiscordColor.Black,
-                        Title = "Test commands for that idiot yapy",
-                        Description = "!test -> Send a basic test message \n" +
-                                       "!embed -> Calls you a nice name :) \n" +
-                                       "!cardgame -> Play a simple cardgame.                            Highest number wins!"
-                    };
-
-                    await args.Interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().AddEmbed(testsCommandEmbed));
-                    break;
-
-                case "calcButton":
-                    await args.Interaction.DeferAsync();
-                    var calcCommandEmbed = new DiscordEmbedBuilder
-                    {
-                        Color = DiscordColor.Black,
-                        Title = "Some stupid lil calulator idk its just for learning",
-                        Description = "/calculator add -> adds two numbers \n" +
-                                    "/calculator subtract -> subtracts two numbers \n" +
-                                    "/calculator multiply -> you get it honestly idk why im actually typing descriptions for all these."
-                    };
-
-                    await args.Interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().AddEmbed(calcCommandEmbed));
-                    break;
+                    // Other button events can be handled similarly
             }
         }
 
@@ -207,15 +220,12 @@ namespace PowBot
 
         private static async Task VoiceChannelHandler(DiscordClient sender, DSharpPlus.EventArgs.VoiceStateUpdateEventArgs e)
         {
-            if(e.Before is null)
+            if (e.Before is null)
             {
-                await e.Channel.SendMessageAsync($"{e.User.Username} is a lil loser in the vc!!! laugh at them!!");
+                await e.Channel.SendMessageAsync($"{e.User.Username} joined the voice channel!");
             }
         }
 
-        private static Task Client_Ready(DiscordClient sender, DSharpPlus.EventArgs.ReadyEventArgs args)
-        {
-            return Task.CompletedTask;
-        }
+
     }
 }

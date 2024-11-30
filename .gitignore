@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 
 /DiscordBot1/resources
+/DiscordBot1/database/DBEngine.cs
+/DiscordBot1/.env

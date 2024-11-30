@@ -13,6 +13,8 @@ namespace DiscordBot1.config
         public string token {  get; set; }
         public string prefix { get; set; }
 
+        public string connectionStringDB { get; set; }
+
         public async Task ReadJSON()
         {
             using (StreamReader sr = new StreamReader("config.json"))
@@ -22,6 +24,7 @@ namespace DiscordBot1.config
 
                 this.token = data.token; 
                 this.prefix = data.prefix;
+                this.connectionStringDB = data.connectionStringDB;
             }
         }
     }
@@ -30,5 +33,7 @@ namespace DiscordBot1.config
     {
         public string token { get; set; }
         public string prefix { get; set; }
+
+        public string connectionStringDB { get; set; }
     }
 }

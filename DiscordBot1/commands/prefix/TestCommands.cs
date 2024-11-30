@@ -1,12 +1,40 @@
-﻿using DiscordBot1.other;
+﻿using DiscordBot1.database;
+using DiscordBot1.other;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
 
 namespace DiscordBot1.commands.prefix
 {
     public class TestCommands : BaseCommandModule
     {
+        //[Command("store")]
+        //public async Task StoreCommand(InteractionContext ctx)
+        //{
+        //    Console.WriteLine("store command started");
+
+        //    var DBEngine = new DBEngine();
+
+        //    var userInfo = new DUser
+        //    {
+        //        userName = ctx.User.Username,
+        //        serverName = ctx.Guild.Name,
+        //        serverID = ctx.Guild.Id
+        //    };
+
+        //    var isStored = await DBEngine.StoreUserAsync(userInfo);
+
+        //    if (isStored == true)
+        //    {
+        //        await ctx.Channel.SendMessageAsync("Sucessfully stored user in database");
+        //    }
+        //    else
+        //    {
+        //        await ctx.Channel.SendMessageAsync("Something went wrong");
+        //    }
+        //}
+
         [Command("test")]
         public async Task MyFirstCommand(CommandContext ctx)
         {
@@ -94,11 +122,13 @@ namespace DiscordBot1.commands.prefix
             {
                 var loseMessage = new DiscordEmbedBuilder
                 {
-                    Title = "WOW you SUCK!!!! you LOST, im literally nae naeing on you right now X3",
+                    Title = "WOzu right now X3",
                     Color = DiscordColor.Red
                 };
                 await ctx.Channel.SendMessageAsync(embed: loseMessage);
             }
         }
+
+        
     }
 }
