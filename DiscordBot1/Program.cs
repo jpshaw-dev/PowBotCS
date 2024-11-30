@@ -25,9 +25,10 @@ namespace PowBot
             DotNetEnv.Env.TraversePath().Load();
             string connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
             string token = Environment.GetEnvironmentVariable("TOKEN");
-            
-            
-                                                                                                                                                                                                       
+
+
+            Console.WriteLine($"Connecting to database with connection string: {connectionString}");
+
             var discordConfig = new DiscordConfiguration()
             {
                 Intents = DiscordIntents.All,
