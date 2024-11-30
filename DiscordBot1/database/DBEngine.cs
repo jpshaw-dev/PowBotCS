@@ -16,7 +16,7 @@ namespace DiscordBot1.database
 
 
 
-        //private string connectionString = "Host=192.168.1.200:5432;Username=pow;Password=Ilovevilsm5;Database=postgres";
+        
 
         public bool isLevelledUp = false;
 
