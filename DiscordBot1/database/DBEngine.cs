@@ -10,13 +10,7 @@ namespace DiscordBot1.database
     public class DBEngine
     {
 
-        
         string connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-
-
-
-
-        
 
         public bool isLevelledUp = false;
 

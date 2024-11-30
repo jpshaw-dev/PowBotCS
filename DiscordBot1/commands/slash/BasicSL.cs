@@ -74,7 +74,7 @@ namespace DiscordBot1.commands.slash
                     var profileEmbed = new DiscordEmbedBuilder
                     {
                         Color = DiscordColor.Purple,
-                        Title = $"{user.UserName}",
+                        Title = $"{user.UserName}",                             
 
                     };
 

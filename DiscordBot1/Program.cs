@@ -1,8 +1,4 @@
-﻿using DiscordBot1.commands;
-using DiscordBot1.commands.buttons;
-using DiscordBot1.commands.components;
-using DiscordBot1.commands.prefix;
-using DiscordBot1.commands.slash;
+﻿using DiscordBot1.commands.slash;
 using DiscordBot1.config;
 using DiscordBot1.database;
 using DotNetEnv;
@@ -15,7 +11,6 @@ using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace PowBot
 {
@@ -23,26 +18,20 @@ namespace PowBot
     {
         public static DiscordClient Client { get; private set; }
         public static CommandsNextExtension Commands { get; private set; }
-        private static JSONReader jsonReader;
         static async Task Main(string[] args)
         {
-            
-            
-            
-            //1. Get the details of your config.json file by deserialising it
-            var configJsonFile = new JSONReader();
-            await configJsonFile.ReadJSON();
 
-            Environment.SetEnvironmentVariable("DB_CONNECTION_STRING", $"{configJsonFile.connectionStringDB}");
             Env.Load();
+            DotNetEnv.Env.TraversePath().Load();
             string connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-            Console.WriteLine(connectionString);
-
-            //2. Setting up the Bot Configuration
+            string token = Environment.GetEnvironmentVariable("TOKEN");
+            
+            
+                                                                                                                                                                                                       
             var discordConfig = new DiscordConfiguration()
             {
                 Intents = DiscordIntents.All,
-                Token = configJsonFile.token,
+                Token = token,
                 TokenType = TokenType.Bot,
                 AutoReconnect = true
             };
@@ -64,15 +53,15 @@ namespace PowBot
             Client.MessageCreated += MessageCreatedHandler;
 
             //Commands Configuration
-            var commandsConfig = new CommandsNextConfiguration()
-            {
-                StringPrefixes = new string[] { configJsonFile.prefix },
-                EnableMentionPrefix = true,
-                EnableDms = true,
-                EnableDefaultHelp = false,
-            };
+            //var commandsConfig = new CommandsNextConfiguration()
+            //{
+            //    StringPrefixes = new string[] { configJsonFile.prefix },
+            //    EnableMentionPrefix = true,
+            //    EnableDms = true,
+            //    EnableDefaultHelp = false,
+            //};
 
-            Commands = Client.UseCommandsNext(commandsConfig);
+            //Commands = Client.UseCommandsNext(commandsConfig);
 
             // Command Registration
 
@@ -222,7 +211,8 @@ namespace PowBot
         {
             if (e.Before is null)
             {
-                await e.Channel.SendMessageAsync($"{e.User.Username} joined the voice channel!");
+                //await e.Channel.
+                await e.Channel.SendMessageAsync($"{e.User.Username} joined the voice channel what a fucking loser!");
             }
         }
 
